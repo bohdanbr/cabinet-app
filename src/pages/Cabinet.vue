@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { vMaska } from "maska"
 
 const userRole = ref(localStorage.getItem('userRole') || '')
 const users = ref([])
@@ -15,7 +16,7 @@ const roleAdmin = () => setUserRole('admin')
 const roleUser = () => setUserRole('user')
 
 const modal = ref(null)
-const editUser = ref(null);
+const editUser = ref(null)
 
 
 onMounted(async () => {
@@ -38,24 +39,24 @@ const add = () => {
 }
 
 const edit = (id) => {
-  const user = users.value.find(user => user.id === id);
+  const user = users.value.find(user => user.id === id)
   editUser.value = JSON.parse(JSON.stringify(user))
-  modal.value.show();
-};
+  modal.value.show()
+}
 
 const saveChanges = () => {
   // Обработка сохранения изменений
-  const index = users.value.findIndex(user => user.id === editUser.value.id);
+  const index = users.value.findIndex(user => user.id === editUser.value.id)
 
   // Обновление данных пользователя по найденному индексу
   if (index !== -1) {
     // Используйте метод splice для замены старых данных пользователя на обновленные
-    users.value.splice(index, 1, {...editUser.value});
+    users.value.splice(index, 1, {...editUser.value})
 
     // Закройте модальное окно
-    modal.value.hide();
+    modal.value.hide()
   }
-};
+}
 
 const deleteItem = async (id) => {
   try {
@@ -75,6 +76,11 @@ const exitSession = () => {
   localStorage.removeItem('userRole')
   router.push('/')
 }
+
+const isEditUserValid = computed(() => {
+  return editUser.value && editUser.value.name && editUser.value.email && editUser.value.address.zipcode
+})
+
 
 
 const router = useRouter()
@@ -99,7 +105,7 @@ const router = useRouter()
           <th scope="row">{{ index + 1 }}</th>
           <td> {{ user.name }}</td>
           <td>{{ user.email }}</td>
-          <td>{{ user.address.zipcode }}</td>
+          <td >{{ user.address.zipcode }}</td>
           <td v-if="userRole === 'admin'">
             <div class="i-class">
               <i class="bi bi-pen-fill" @click="edit(user.id)"></i>
@@ -131,13 +137,13 @@ const router = useRouter()
               </div>
               <div class="mb-3">
                 <label for="phone" class="form-label">Phone</label>
-                <input type="phone" v-model="editUser.address.zipcode" class="form-control" id="phone">
+                <input type="phone" v-model="editUser.address.zipcode" v-maska data-maska="+1 (#) ####-####" class="form-control" id="phone">
               </div>
             </form>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" @click="saveChanges">Save changes</button>
+            <button type="button" class="btn btn-primary" @click="saveChanges" :disabled="!isEditUserValid">Save changes</button>
           </div>
         </div>
       </div>

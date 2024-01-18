@@ -1,5 +1,5 @@
 1. Вместо телефона получить и подставить zipcode +
-2. Прикрутить maska 
-3. Disabled кнопку Save в модалке если поля пустые
-4. Кнопка добавить пользователя modal.bootsrap
+2. Прикрутить maska +
+3. Disabled кнопку Save в модалке редактирования если поля пустые +
+4. Кнопка добавить пользователя modal.bootsrap 
 5. druganddrop https://www.npmjs.com/package/vue3-draggable
