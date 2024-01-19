@@ -2,6 +2,9 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { vMaska } from "maska"
+import draggable from "vuedraggable";
+
+const router = useRouter()
 
 const userRole = ref(localStorage.getItem('userRole') || '')
 const users = ref([])
@@ -51,7 +54,7 @@ const saveChanges = () => {
   // Обновление данных пользователя по найденному индексу
   if (index !== -1) {
     // Используйте метод splice для замены старых данных пользователя на обновленные
-    users.value.splice(index, 1, {...editUser.value})
+    users.value.splice(index, 1, { ...editUser.value })
 
     // Закройте модальное окно
     modal.value.hide()
@@ -82,8 +85,14 @@ const isEditUserValid = computed(() => {
 })
 
 
-
-const router = useRouter()
+const handleDragChange = (event) => {
+  if (event.moved && Array.isArray(event.moved)) {
+    event.moved.forEach((movedItem, newIndex) => {
+      const originalIndex = users.value.findIndex(user => user.id === movedItem.element.id);
+      users.value[originalIndex].order = originalIndex + 1;
+    });
+  }
+};
 </script>
 
 
@@ -96,25 +105,26 @@ const router = useRouter()
           <th scope="col">#</th>
           <th scope="col">Name</th>
           <th scope="col">Email</th>
-          <th scope="col">Phone</th>
+          <th scope="col">Zip Code</th>
           <th scope="col" v-if="userRole === 'admin'">Action</th>
         </tr>
       </thead>
-      <tbody>
-        <tr v-for="(user, index) in users" :key="index">
-          <th scope="row">{{ index + 1 }}</th>
-          <td> {{ user.name }}</td>
-          <td>{{ user.email }}</td>
-          <td >{{ user.address.zipcode }}</td>
-          <td v-if="userRole === 'admin'">
-            <div class="i-class">
-              <i class="bi bi-pen-fill" @click="edit(user.id)"></i>
-              <i class="bi bi-trash-fill" @click="deleteItem(user.id)"></i>
-            </div>
-          </td>
-        </tr>
-
-      </tbody>
+      <draggable v-model="users" tag="tbody" item-key="id" @change="handleDragChange">
+        <template #item="{ element: user, index }">
+          <tr class="draggable-item">
+            <th scope="row">{{ index + 1 }}</th>
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.address ? user.address.zipcode : '' }}</td>
+            <td v-if="userRole === 'admin'">
+              <div class="i-class">
+                <i class="bi bi-pen-fill" @click="edit(user.id)"></i>
+                <i class="bi bi-trash-fill" @click="deleteItem(user.id)"></i>
+              </div>
+            </td>
+          </tr>
+        </template>
+      </draggable>
     </table>
 
     <!-- Modal -->
@@ -136,14 +146,16 @@ const router = useRouter()
                 <input type="email" v-model="editUser.email" class="form-control" id="email">
               </div>
               <div class="mb-3">
-                <label for="phone" class="form-label">Phone</label>
-                <input type="phone" v-model="editUser.address.zipcode" v-maska data-maska="+1 (#) ####-####" class="form-control" id="phone">
+                <label for="zipcode" class="form-label">Zip Code</label>
+                <input v-model="editUser.address.zipcode" v-maska data-maska="#####-####" class="form-control"
+                  id="zipcode">
               </div>
             </form>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" @click="saveChanges" :disabled="!isEditUserValid">Save changes</button>
+            <button type="button" class="btn btn-primary" @click="saveChanges" :disabled="!isEditUserValid">Save
+              changes</button>
           </div>
         </div>
       </div>
